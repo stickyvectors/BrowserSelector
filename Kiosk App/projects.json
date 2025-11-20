@@ -1,6 +1,8 @@
 {
 	"config": {
-		"titleCardDurationMs": 3000
+		"titleCardDurationMs": 3000,
+		"backgroundColor": "#080808",
+		"backgroundImagePath": "./bg.png"
 	},
 	"projects": [
 		{

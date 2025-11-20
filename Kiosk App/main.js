@@ -8,7 +8,9 @@ app.commandLine.appendSwitch('use-fake-ui-for-media-stream');
 
 const PROJECTS_FILE_NAME = 'projects.json';
 const DEFAULT_CONFIG = {
-  titleCardDurationMs: 3000
+  titleCardDurationMs: 3000,
+  backgroundColor: '#080808',
+  backgroundImagePath: ''
 };
 const SERIAL_SCAN_INTERVAL_MS = 5000;
 
@@ -28,10 +30,44 @@ let serialPort = null;
 let serialScanIntervalId = null;
 let serialScanInProgress = false;
 
+function resolveBackgroundImageParam(imagePath) {
+  if (!imagePath || typeof imagePath !== 'string') {
+    return '';
+  }
+  const trimmed = imagePath.trim();
+  if (!trimmed) return '';
+
+  if (/^(https?|data):/i.test(trimmed)) {
+    return trimmed;
+  }
+
+  try {
+    const baseDir = projectsFilePath
+      ? path.dirname(projectsFilePath)
+      : __dirname;
+    const absolutePath = path.isAbsolute(trimmed)
+      ? trimmed
+      : path.resolve(baseDir, trimmed);
+    return pathToFileURL(absolutePath).toString();
+  } catch (err) {
+    console.warn('Failed to resolve background image path:', err);
+    return '';
+  }
+}
+
 function buildTitleCardUrl(project) {
   const url = new URL(pathToFileURL(titleCardTemplatePath).href);
   url.searchParams.set('title', project.title ?? 'Untitled Project');
   url.searchParams.set('author', project.author ?? 'Unknown Author');
+  if (config.backgroundColor) {
+    url.searchParams.set('bgColor', config.backgroundColor);
+  }
+  const bgImageParam = resolveBackgroundImageParam(
+    config.backgroundImagePath ?? ''
+  );
+  if (bgImageParam) {
+    url.searchParams.set('bgImage', bgImageParam);
+  }
   return url.toString();
 }
 
